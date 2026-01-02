@@ -1,1 +1,0 @@
-# JACQ Source Package
