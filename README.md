@@ -2,7 +2,7 @@
 
 > **[Proprietary Architecture - Concept Whitepaper]**
 
-JACQ is a "Cognitive Operating System" designed to solve context drift in complex logical tasks. It uses a federated agent architecture where a central Orchestrator manages specialized sub-agents.
+JACQ is a "Cognitive Operating System" designed to solve context drift in complex logical tasks. It applies the rigors of **"Data Physics"** (strict schemas, type safety) to the probabilistic nature of LLMs.
 
 ## System Architecture
 
