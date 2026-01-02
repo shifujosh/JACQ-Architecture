@@ -1,14 +1,9 @@
-#!/usr/bin/env python3
 """
-Example: Memory Persistence Across Sessions
-
-This script demonstrates how JACQ's memory system
-enables persistent context. Unlike traditional AI
-that forgets everything between sessions, JACQ
-remembers entities, facts, and preferences.
-
-Usage:
-    python examples/session_example.py
+JACQ Memory System Demo
+----------------------
+Demonstrates the "Cognitive Operating System" in action.
+Shows how the system boosts context, manages memory lifecycles,
+and traverses the knowledge graph.
 """
 
 import sys
@@ -22,150 +17,82 @@ from memory.schema import (
     EntityType,
     Fact,
     FactStatus,
-    Interaction,
-    MemoryContext,
+    MemoryStore,
+    MemoryContext
 )
-from orchestrator.router import IntentRouter, Capability
 
+def highlight(text, color_code="36"):
+    return f"\033[{color_code}m{text}\033[0m"
 
-def simulate_session_1():
-    """First session: User introduces themselves and a project."""
-    print("=" * 60)
-    print("SESSION 1: Initial Context Building")
-    print("=" * 60)
+def run_simulation():
+    print(highlight("Initializing JACQ Cognitive Core...", "35"))
+    store = MemoryStore()
     
-    # User message
-    user_input = "I'm Joshua, working on a project called JACQ. It's a cognitive OS."
-    print(f"\nUser: {user_input}")
+    # 1. Ingestion: Learning new entities
+    print("\n" + highlight("1. Semantic Ingestion", "36"))
+    print("User: 'I'm architecting JACQ using Python and LanceDB.'")
     
-    # System extracts entities
-    user_entity = Entity(
-        entity_type=EntityType.PERSON,
-        name="Joshua",
-        description="The user"
-    )
+    joshua = Entity(entity_type=EntityType.PERSON, name="Joshua")
+    jacq = Entity(entity_type=EntityType.PROJECT, name="JACQ", description="Cognitive OS")
+    python = Entity(entity_type=EntityType.CONCEPT, name="Python")
+    lancedb = Entity(entity_type=EntityType.PROJECT, name="LanceDB", description="Vector Store")
     
-    project_entity = Entity(
-        entity_type=EntityType.PROJECT,
-        name="JACQ",
-        description="Cognitive Operating System"
-    )
-    
-    # System creates facts
-    works_on_fact = Fact(
-        subject_id=user_entity.id,
-        predicate="works_on",
-        object_id=project_entity.id,
-        status=FactStatus.STAGED,
-        source="session_1"
-    )
-    
-    print("\n[Memory System] Entities extracted:")
-    print(f"  - {user_entity.name} ({user_entity.entity_type.value})")
-    print(f"  - {project_entity.name} ({project_entity.entity_type.value})")
-    
-    print("\n[Memory System] Facts created:")
-    print(f"  - {user_entity.name} --works_on--> {project_entity.name}")
-    print(f"    Status: {works_on_fact.status.value}")
-    
-    # Log the interaction
-    interaction = Interaction(
-        session_id="session_1",
-        user_input=user_input,
-        system_response="Nice to meet you, Joshua! I've noted that you're working on JACQ.",
-        entities_mentioned=[user_entity.id, project_entity.id],
-        facts_created=[works_on_fact.id]
-    )
-    
-    print(f"\nSystem: {interaction.system_response}")
-    
-    return user_entity, project_entity, works_on_fact
-
-
-def simulate_session_2(user_entity, project_entity, works_on_fact):
-    """Second session: User returns and context is restored."""
-    print("\n" + "=" * 60)
-    print("SESSION 2: Context Restoration (New Session)")
-    print("=" * 60)
-    
-    # The fact has been accessed again, increasing confidence
-    works_on_fact.access_count += 1
-    works_on_fact.last_accessed = datetime.utcnow()
-    
-    # After 3 accesses, fact is confirmed
-    if works_on_fact.access_count >= 3:
-        works_on_fact.status = FactStatus.CONFIRMED
-    
-    # Build context for this session
-    context = MemoryContext(
-        relevant_entities=[user_entity, project_entity],
-        relevant_facts=[works_on_fact]
-    )
-    
-    print("\n[Memory System] Context restored from previous session:")
-    print(context.to_prompt_context())
-    
-    # User asks a follow-up
-    user_input = "How is JACQ coming along?"
-    print(f"User: {user_input}")
-    
-    # System can now reference past context
-    response = (
-        f"Since you're working on {project_entity.name} "
-        f"({project_entity.description}), I can help you continue from "
-        f"where we left off. What would you like to focus on?"
-    )
-    print(f"\nSystem: {response}")
-    
-    return context
-
-
-def demonstrate_routing():
-    """Show how the orchestrator routes different intents."""
-    print("\n" + "=" * 60)
-    print("BONUS: Intent Routing Demo")
-    print("=" * 60)
-    
-    router = IntentRouter()
-    
-    test_inputs = [
-        "Search for the latest news on AI agents",
-        "Write me a project proposal for JACQ",
-        "Fix this bug in the memory module",
-        "Generate a diagram of the architecture",
-        "Remember that I prefer dark mode",
-        "What should I focus on next?",
+    for e in [joshua, jacq, python, lancedb]:
+        store.add_entity(e)
+        print(f"  -> Learned Entity: {e.name} ({e.entity_type.value})")
+        
+    # 2. Fact Extraction & Linkage
+    print("\n" + highlight("2. Graph Construction", "36"))
+    facts = [
+        Fact(subject_id=joshua.id, predicate="architects", object_id=jacq.id),
+        Fact(subject_id=jacq.id, predicate="built_with", object_id=python.id),
+        Fact(subject_id=jacq.id, predicate="uses_database", object_id=lancedb.id),
     ]
     
-    print("\nRouting various user inputs:\n")
-    for user_input in test_inputs:
-        decision = router.route(user_input)
-        print(f"  \"{user_input[:40]}...\"")
-        print(f"    → {decision.primary_capability.value.upper()}")
-        print(f"      Confidence: {decision.confidence:.0%}")
-        print(f"      Needs memory: {decision.requires_memory}")
-        print()
-
-
-def main():
-    """Run the full demonstration."""
-    print("=" * 60)
-    print("JACQ Memory System Demonstration")
-    print("=" * 60)
-    print("\nThis demo shows how JACQ maintains persistent context")
-    print("across sessions, unlike traditional AI that forgets.")
+    for f in facts:
+        store.add_fact(f)
+        # Simulate accessing them to promote to CONFIRMED
+        for _ in range(3): f.touch()
+        
+    print(f"  -> Created dependence graph: {joshua.name} -> {jacq.name} -> [{python.name}, {lancedb.name}]")
     
-    # Simulate two sessions
-    user, project, fact = simulate_session_1()
-    context = simulate_session_2(user, project, fact)
+    # 3. Context Retrieval (Multi-hop)
+    print("\n" + highlight("3. Context Retrieval (2-Hop Expansion)", "36"))
+    print("User asks about 'Joshua'")
+    print("System expanding context...")
     
-    # Show routing
-    demonstrate_routing()
+    related_ids = store.find_related_entities(joshua.id, max_hops=2)
+    related_entities = [store.entities[eid] for eid in related_ids if eid != joshua.id]
     
-    print("=" * 60)
-    print("Demo complete. Context persists. Nothing is forgotten.")
-    print("=" * 60 + "\n")
-
+    context = MemoryContext(
+        relevant_entities=[joshua] + related_entities,
+        relevant_facts=facts,
+        retrieval_timestamp=datetime.now()
+    )
+    
+    print("\n" + "-"*40)
+    print(context.to_prompt_context())
+    print("-" * 40)
+    print(f"Context Tokens Estimated: {context.estimate_tokens()}")
+    
+    # 4. Simulation of Decay
+    print("\n" + highlight("4. Temporal Decay Simulation", "36"))
+    print("Fast-forwarding 4 weeks without access...")
+    
+    # Add a stale fact
+    temp_fact = Fact(subject_id=joshua.id, predicate="currently_reading", value="Hacker News", status=FactStatus.CONFIRMED)
+    store.add_fact(temp_fact)
+    
+    print(f"  Fact: '{temp_fact.predicate}' Relevance: {temp_fact.relevance:.2f}")
+    
+    # Simulate time passing
+    temp_fact.last_accessed = datetime(2023, 1, 1) # Old date
+    candidates = store.run_decay_pass()
+    
+    print(f"  ...Decay pass run.")
+    print(f"  Fact: '{temp_fact.predicate}' New Relevance: {temp_fact.relevance:.2f}")
+    if temp_fact.relevance < 0.2:
+        print(f"  Result: Fact marked for cleanup (relevance < 0.2)")
 
 if __name__ == "__main__":
-    main()
+    run_simulation()

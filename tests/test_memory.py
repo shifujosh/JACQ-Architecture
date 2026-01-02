@@ -1,10 +1,11 @@
 """
-Unit tests for the Memory System.
+Unit tests for the JACQ Memory System.
 
-Tests cover entity/fact creation, staging lifecycle,
-and context retrieval.
-
-Run with: pytest tests/test_memory.py -v
+Verifies cognitive architecture components:
+- Entity-Fact graph structure
+- Staging and promotion lifecycle
+- Time-based decay of relevance
+- Context traversal (related entity discovery)
 """
 
 import pytest
@@ -19,154 +20,94 @@ from memory.schema import (
     EntityType,
     Fact,
     FactStatus,
-    Interaction,
-    MemoryContext,
+    MemoryStore
 )
 
 
-class TestEntity:
-    """Tests for Entity model."""
-
-    def test_create_entity(self):
-        """Entity should be created with defaults."""
-        entity = Entity(
-            entity_type=EntityType.PERSON,
-            name="Joshua"
-        )
-        assert entity.name == "Joshua"
-        assert entity.entity_type == EntityType.PERSON
-        assert entity.id is not None
-        assert entity.created_at is not None
-
-    def test_entity_with_metadata(self):
-        """Entity should support arbitrary metadata."""
-        entity = Entity(
-            entity_type=EntityType.PROJECT,
-            name="JACQ",
-            description="Cognitive Operating System",
-            metadata={"status": "active", "priority": "high"}
-        )
-        assert entity.metadata["status"] == "active"
-        assert entity.description == "Cognitive Operating System"
-
-    def test_entity_equality(self):
-        """Two entities with same ID should be equal."""
-        entity1 = Entity(entity_type=EntityType.CONCEPT, name="Test")
-        entity2 = Entity(
-            id=entity1.id,
-            entity_type=EntityType.CONCEPT,
-            name="Test"
-        )
-        assert entity1 == entity2
-
-
-class TestFact:
-    """Tests for Fact model."""
-
-    def test_create_relationship_fact(self):
-        """Fact can represent a relationship between entities."""
+class TestMemoryLifecycle:
+    """Tests for the dynamic lifecycle of memories."""
+    
+    def test_fact_promotion(self):
+        """Facts should move from STAGED to CONFIRMED after reuse."""
         fact = Fact(
-            subject_id="entity_1",
-            predicate="works_on",
-            object_id="entity_2"
-        )
-        assert fact.is_relationship() is True
-        assert fact.is_attribute() is False
-        assert fact.status == FactStatus.STAGED
-
-    def test_create_attribute_fact(self):
-        """Fact can represent an attribute value."""
-        fact = Fact(
-            subject_id="entity_1",
-            predicate="prefers_theme",
-            value="dark_mode"
-        )
-        assert fact.is_attribute() is True
-        assert fact.is_relationship() is False
-
-    def test_fact_staging_lifecycle(self):
-        """Fact should start staged and be confirmable."""
-        fact = Fact(
-            subject_id="entity_1",
-            predicate="knows",
-            object_id="entity_2"
+            subject_id="ent_1",
+            predicate="likes",
+            value="pizza"
         )
         assert fact.status == FactStatus.STAGED
         
-        # Simulate confirmation
-        fact.status = FactStatus.CONFIRMED
-        fact.access_count = 3
+        # Simulate repeated access
+        fact.touch() # 1
+        fact.touch() # 2
+        assert fact.status == FactStatus.STAGED
+        
+        fact.touch() # 3 (Threshold)
         assert fact.status == FactStatus.CONFIRMED
 
-    def test_fact_confidence(self):
-        """Fact confidence should be bounded 0-1."""
+    def test_relevance_decay(self):
+        """Confirmed facts should lose relevance over time."""
         fact = Fact(
-            subject_id="entity_1",
-            predicate="test",
-            value="test",
-            confidence=0.8
+            subject_id="ent_1",
+            predicate="location",
+            value="office",
+            status=FactStatus.CONFIRMED,
+            relevance=1.0
         )
-        assert fact.confidence == 0.8
         
-        # Pydantic should reject out-of-range values
-        with pytest.raises(ValueError):
-            Fact(
-                subject_id="entity_1",
-                predicate="test",
-                value="test",
-                confidence=1.5
-            )
-
-
-class TestMemoryContext:
-    """Tests for context retrieval and formatting."""
-
-    def test_empty_context(self):
-        """Empty context should format cleanly."""
-        context = MemoryContext()
-        prompt = context.to_prompt_context()
-        assert "## Memory Context" in prompt
-
-    def test_context_with_entities(self):
-        """Context should include entity information."""
-        entity = Entity(
-            entity_type=EntityType.PROJECT,
-            name="JACQ",
-            description="AI workspace"
-        )
-        context = MemoryContext(relevant_entities=[entity])
-        prompt = context.to_prompt_context()
+        # Simulate 2 weeks of inactivity
+        fact.decay(weeks_inactive=2.0)
         
-        assert "JACQ" in prompt
-        assert "project" in prompt
-        assert "AI workspace" in prompt
+        # 1.0 - (0.05 * 2) = 0.9
+        assert fact.relevance < 1.0
+        assert fact.relevance == 0.9
 
-    def test_context_with_facts(self):
-        """Context should include fact information."""
-        fact = Fact(
-            subject_id="entity_1",
-            predicate="prefers",
-            value="concise responses"
-        )
-        context = MemoryContext(relevant_facts=[fact])
-        prompt = context.to_prompt_context()
+class TestMemoryGraph:
+    """Tests for graph traversal and storage."""
+    
+    def test_related_entity_discovery(self):
+        """Should find connected entities through 'hops'."""
+        store = MemoryStore()
         
-        assert "prefers" in prompt
-        assert "concise responses" in prompt
-
-
-class TestInteraction:
-    """Tests for interaction logging."""
-
-    def test_create_interaction(self):
-        """Interaction should capture session data."""
-        interaction = Interaction(
-            session_id="session_123",
-            user_input="What was the project we discussed?",
-            system_response="You mentioned JACQ, the cognitive OS.",
-            entities_mentioned=["entity_jacq"],
-            facts_accessed=["fact_1", "fact_2"]
+        # Create a graph: User -> Project -> Tech
+        user = Entity(entity_type=EntityType.PERSON, name="Joshua")
+        project = Entity(entity_type=EntityType.PROJECT, name="JACQ")
+        tech = Entity(entity_type=EntityType.CONCEPT, name="Python")
+        
+        store.add_entity(user)
+        store.add_entity(project)
+        store.add_entity(tech)
+        
+        # Connect them
+        # Joshua --works_on--> JACQ
+        f1 = Fact(subject_id=user.id, predicate="works_on", object_id=project.id)
+        # JACQ --uses--> Python
+        f2 = Fact(subject_id=project.id, predicate="uses", object_id=tech.id)
+        
+        store.add_fact(f1)
+        store.add_fact(f2)
+        
+        # Search from User (2 hops max)
+        related = store.find_related_entities(user.id, max_hops=2)
+        
+        assert project.id in related # 1 hop
+        assert tech.id in related    # 2 hops
+    
+    def test_cleanup_pass(self):
+        """Should identify stale facts for cleanup."""
+        store = MemoryStore()
+        
+        # Create a stale confirmed fact
+        old_fact = Fact(
+            subject_id="ent_1", 
+            predicate="was_at", 
+            value="old_place",
+            status=FactStatus.CONFIRMED,
+            relevance=0.1, # Below 0.2 threshold
+            last_accessed=datetime.utcnow() - timedelta(weeks=10)
         )
-        assert interaction.session_id == "session_123"
-        assert len(interaction.facts_accessed) == 2
-        assert interaction.timestamp is not None
+        store.add_fact(old_fact)
+        
+        cleaned_count = store.run_decay_pass()
+        assert cleaned_count == 1
+        # Relevance should have dropped further
+        assert old_fact.relevance == 0.0
