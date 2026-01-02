@@ -1,48 +1,58 @@
-# JACQ: Multi-Agent Orchestration Environment
+# JACQ: The Magic Canvas
 
-> **[Proprietary Architecture - Concept Whitepaper]**
+> *A personal AI operating system that remembers, learns, and self-corrects.*
 
-JACQ is a "Cognitive Operating System" designed to solve context drift in complex logical tasks. It applies the rigors of **"Data Physics"** (strict schemas, type safety) to the probabilistic nature of LLMs.
+---
 
-## System Architecture
+## The Problem
+
+AI tools today are brilliant but forgetful. You start a conversation, build context, and then... it's gone. Every new session starts from zero. This "context amnesia" makes AI unreliable for complex, multi-step work.
+
+## The Solution
+
+JACQ gives AI a persistent memory and the ability to fix its own mistakes.
+
+It is a **local-first** workspace where I direct AI agents to research, write, code, and create visuals—all in a single fluid canvas. The system remembers past conversations, learns my preferences, and verifies its own outputs before shipping.
+
+---
+
+## How It Works
 
 ```mermaid
 graph TD
-    %% --- Styling (Dark Mode Native) ---
-    classDef user fill:#1e293b,stroke:#f59e0b,stroke-width:2px,color:#f59e0b;
-    classDef brain fill:#1e293b,stroke:#a855f7,stroke-width:2px,color:#d8b4fe;
-    classDef swarm fill:#1e293b,stroke:#3b82f6,stroke-width:1px,color:#93c5fd;
+    classDef conductor fill:#0f172a,stroke:#f59e0b,stroke-width:3px,color:#f59e0b;
+    classDef ai fill:#1e293b,stroke:#a855f7,stroke-width:2px,color:#d8b4fe;
+    classDef work fill:#1e293b,stroke:#3b82f6,stroke-width:1px,color:#93c5fd;
     classDef data fill:#1e293b,stroke:#0ea5e9,stroke-width:2px,color:#7dd3fc;
 
-    User[User / Developer]:::user -->|CLI Command| Orch[Orchestrator Agent]:::brain
+    You(["🎻 Conductor"]):::conductor ==>|Intent| Brain{{"Orchestrator"}}:::ai
     
-    subgraph "Context Management Layer"
-        Orch <-->|Read/Write| ShortMem[Short Term Memory]:::data
-        Orch <-->|RAG Retrieval| LongMem[(Vector Store / Codebase)]:::data
+    subgraph Memory ["🧠 Memory"]
+        Short[(Short-Term)]:::data
+        Long[(Long-Term)]:::data
     end
     
-    subgraph "Agent Swarm"
-        Orch -->|Delegates Task| Coder[Coding Agent]:::swarm
-        Orch -->|Delegates Review| Reviewer[Reviewer Agent]:::swarm
-        Orch -->|Delegates Ops| QA[QA/Test Agent]:::swarm
+    Brain <-->|Read/Write| Memory
+    
+    subgraph Agents ["⚙️ Agents"]
+        Brain -->|Code| Coder["Coder"]:::work
+        Brain -->|Review| Reviewer["Reviewer"]:::work
+        Brain -->|Test| QA["QA"]:::work
     end
     
-    Coder -->|Generates Syntax| Sandbox[Execution Environment]:::data
-    Reviewer -->|Validates Logic| Sandbox
-    Sandbox -->|Result/Error| Orch
+    Coder & Reviewer & QA --> Output["✅ Verified Output"]:::work
 ```
 
-## Core Components
+**The key insight:** The Orchestrator does not write code. It *plans, delegates, and verifies*. This separation keeps the system reliable.
 
-### 1. The Orchestrator
-Acts as the system bus. It does not write code; it plans, delegates, and reviews. It maintains the "Thread State" ensuring that no context is lost between agent hand-offs.
+---
 
-### 2. Context Management
-- **Short Term Memory:** Ephemeral scratchpad for the current task.
-- **Long Term Memory:** Vector-based retrieval for codebase understanding and historical decisions.
+## Built With
 
-### 3. Agent Swarm
-Specialized agents with narrow prompts and tools:
-- **Coder:** Pure generation.
-- **Reviewer:** Linting, logic checking, and security validation.
-- **QA:** Running tests and verifying acceptance criteria.
+- **TypeScript** — Core logic
+- **DuckDB** — Local vector memory (no cloud dependency)
+- **Playwright** — Automated end-to-end testing
+
+---
+
+> **[Back to Profile](https://github.com/shifujosh)**
