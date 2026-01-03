@@ -6,6 +6,7 @@
 
 > *A unified workspace where AI remembers, learns, and self-corrects.*
 
+[![CI](https://github.com/shifujosh/JACQ-Architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/shifujosh/JACQ-Architecture/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
