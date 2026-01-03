@@ -1,7 +1,8 @@
 <div align="center">
+  <img src="./assets/jacq_header.png" alt="JACQ: Cognitive Operating System" width="100%" />
+</div>
 
-# JACQ
-
+# JACQ Architecture
 ### Cognitive Operating System
 
 > *A unified workspace where AI remembers, learns, and self-corrects.*
