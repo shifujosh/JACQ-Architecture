@@ -94,7 +94,7 @@ graph LR
 
 Unlike flat context windows or simple vector stores, JACQ uses a **knowledge graph** with semantic retrieval:
 
-```
+```text
 Entity (Person/Project/Concept) ──predicate──> Entity
 Entity ──attribute──> Value
 ```
@@ -108,7 +108,7 @@ Entity ──attribute──> Value
 
 Not all learned facts are equal. New inferences are "staged" before becoming permanent:
 
-```
+```text
 staged ──(3+ accesses)──> confirmed ──(contradiction)──> superseded
                                └──(decay)──> retracted
 ```
@@ -166,6 +166,10 @@ npm test
 ```
 
 See [examples/](examples/) for complete demonstrations.
+
+### Live Demo
+
+![JACQ Graph-RAG Demo](assets/demo_terminal.png)
 
 ---
 
