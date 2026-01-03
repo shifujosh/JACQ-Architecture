@@ -167,9 +167,7 @@ npm test
 
 See [examples/](examples/) for complete demonstrations.
 
-### Live Demo
 
-![JACQ Graph-RAG Demo](assets/demo_terminal.png)
 
 ---
 
