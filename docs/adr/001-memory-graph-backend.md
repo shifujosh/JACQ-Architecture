@@ -33,7 +33,7 @@ We chose to implement a **Hybrid Cognitive Graph** using **DuckDB**.
 
 ### Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │              Application Layer              │
 │   (TypeScript: graph-traversal.ts)          │

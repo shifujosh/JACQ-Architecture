@@ -154,15 +154,15 @@ The Action Engine doesn't wait for commands:
 ## Examples
 
 ```bash
-# Clone and install
+## Clone and install
 git clone https://github.com/shifujosh/JACQ-Architecture.git
 cd JACQ-Architecture
 npm install
 
-# Run the Graph-RAG demo
+## Run the Graph-RAG demo
 npx tsx examples/graph_rag_demo.ts
 
-# Run tests
+## Run tests
 npm test
 ```
 
@@ -174,7 +174,7 @@ See [examples/](examples/) for complete demonstrations.
 
 ## Project Structure
 
-```
+```text
 JACQ-Architecture/
 ├── src/
 │   ├── memory/           # Entity-Fact schema, staging policies

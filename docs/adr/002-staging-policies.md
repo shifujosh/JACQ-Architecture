@@ -29,7 +29,7 @@ Implement a **Staged Memory Lifecycle** with promotion, decay, and conflict reso
 
 ### Lifecycle States
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
 │   [STAGED]  ──(3+ accesses)──>  [CONFIRMED]                 │
